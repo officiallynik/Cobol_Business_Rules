@@ -8,4 +8,4 @@ with open('input/shop.cbl') as f:
     variables = cbl_model.prog['DATA']['work_store']['elementary']
     code=cbl_model.prog['PROCEDURE']
     business_variabes, statements, paragraphs = procedure_division(code,variables)
-    build_cfg(statements, paragraphs)
+    statements = build_cfg(statements, paragraphs)

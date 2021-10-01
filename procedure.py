@@ -6,6 +6,7 @@ class Statement:
         self.indexVariable = {}
         self.sourceVariable = {}
         self.targetVariable = {}
+        self.conditionStatements = []
         self.tag = None
         self.line_number = None 
         self.next = []
@@ -253,6 +254,7 @@ def procedure_division(code, variables):
         elif first_token == "if":
             # IF statement
             statement = if_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
             temp_stack.append(statement)
@@ -264,6 +266,7 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "else"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
 
@@ -276,6 +279,7 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "else"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
 
@@ -285,6 +289,7 @@ def procedure_division(code, variables):
         elif first_token == "display":
             # display statement
             statement = display_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
         elif first_token == "perform":
@@ -293,6 +298,7 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "perform"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
         elif first_token == "go":
@@ -301,29 +307,34 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "go"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
         elif first_token == "move":
             # MOVE TO statement
             statement = move_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
         elif first_token == "add":
             # ADD TO statement
             # ADD 1 TO BAG
             statement = add_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
             
         elif first_token == "subtract":
             # SUBTRACT FROM statement
             statement = subtract_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
             
         elif first_token == "compute":
             # COMPUTE statement
             statement = compute_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
             
@@ -333,6 +344,7 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "stop"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
             
@@ -350,6 +362,7 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "exit"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
         else:
@@ -358,27 +371,28 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "paragraph_name"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             paragraphs[tokens[1]] = statement
             line_number = line_number + 1
     
     business_variables = set()
     for var in variable_classification["target"]:   
-        business_variables.add(var.name)
+        business_variables.add(var)
 
     for var in variable_classification["in-out"]:   
-        business_variables.add(var.name)
+        business_variables.add(var)
     
     for var in variable_classification["conditional"]:   
-        business_variables.add(var.name)
+        business_variables.add(var)
 
     return business_variables, statements, paragraphs
 
 def display(statement):
-    print(statement.tag, statement.text)
+    print(statement.tag, statement.text, statement.line_number)
     statements = statement.next
     for statement in statements:
-        print(statement.tag, statement.text)
+        print(statement.tag, statement.text, statement.line_number)
 
 def build_cfg(statements, paragraphs):
     for i in range(len(statements)):
@@ -398,13 +412,13 @@ def build_cfg(statements, paragraphs):
             para2_index = paragraphs[para2_name].line_number - 1
             # setting next of statement just before para2 
             statements[para2_index - 1].next.append(statements[i+1])
-            
+            # display(statements[para2_index - 1])
         elif statements[i].tag == "if":
             statements[i].next = [statements[statements[i].line_number], statements[statements[i].alt]]
             statements[statements[i].last].next.append(statements[i].next_line)
             statements[statements[i].alt_last].next.append(statements[i].next_line)
 
-            display(statements[i])
+            # display(statements[i])
 
         elif statements[i].tag == "go":
             # GO TO PARA
@@ -416,18 +430,19 @@ def build_cfg(statements, paragraphs):
             # index will be line_number - 1
             next_statement_index = (paragraphs[para_name].line_number + 1) - 1 
             statements[i].next.append(statements[next_statement_index])
-            
+            # display(statements[i])
         elif statements[i].tag == "exit":
             pass
         elif statements[i].tag == "stop":
             pass
         elif statements[i].tag == "paragraph_name":
             statements[i].next.append(statements[i+1])            
-        elif statements[i].tag == "end-if":
-            statements[i].next.append(statements[i+1])            
+            # display(statements[i])            
         else:
-            statements[i].next.append(statements[i+1])            
+            statements[i].next.append(statements[i+1])
+            # display(statements[i])            
             
+    return statements
         
     
 

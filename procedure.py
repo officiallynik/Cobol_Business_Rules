@@ -1,19 +1,19 @@
-
+import re
 class Statement:
     def __init__(self):
-        text = ""
-        conditionVariable = {}
-        indexVariable = {}
-        sourceVariable = {}
-        targetVariable = {}
-        tag = None
-        line_number = None 
-        next = []
+        self.text = ""
+        self.conditionVariable = {}
+        self.indexVariable = {}
+        self.sourceVariable = {}
+        self.targetVariable = {}
+        self.tag = None
+        self.line_number = None 
+        self.next = []
 
 class Variable:
     def __init__(self):
-        name = ""
-        statements = []
+        self.name = ""
+        self.statements = []
 
 
 def enter_variable(var, variables, type, statement):
@@ -163,6 +163,39 @@ def if_statement(tokens, line_number, variables, variable_classification):
 
     return statement
 
+def remove_string_literal(tokens):
+    # removing line no. and display keyword
+    # "Hello 'world'"
+    # 'Hello "world'
+    str = " ".join(tokens)
+    edited_st = re.sub(r'".+?"'," ",str) # remove everything between double quotes
+    edited_st = re.sub(r'".+?"'," ",edited_st) # remove everything between single quotes
+    return edited_st.split()
+
+
+
+
+def display_statement(tokens, line_number, variables, variable_classification):
+    # DISPLAY statement 
+    # Assuming display statement consists of only one variable   
+    statement =  Statement()
+    statement.tag = "display"
+    statement.line_number = line_number
+    statement.text = " ".join(tokens[1:])
+
+    # Remove string literal from statement
+    tokens = remove_string_literal(tokens)
+    # tokens: ['some_number','DISPLAY','variable']
+    
+    if len(tokens) == 2:
+        return statement
+
+    var = tokens[2]
+    enter_variable(var,variables,"in-out",statement)
+    variable_classification["in-out"].append(variables[var])
+
+    return statement
+
 def procedure_division(code, variables):
     # Assuming code is already splitted into different lines and only consists of procedure division
     # variables is a list/set of all data items found in data division
@@ -206,6 +239,9 @@ def procedure_division(code, variables):
             
         elif first_token == "display":
             # display statement
+            statement = display_statement(tokens,line_number,variables, variable_classification)
+            statements.append(statement)
+            line_number = line_number + 1
             pass
         elif first_token == "perform":
             # PERFORM THROUGH statement

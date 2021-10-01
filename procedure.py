@@ -362,25 +362,50 @@ def procedure_division(code, variables):
 def build_cfg(statements, paragraphs):
     for i in range(len(statements)):
         if statements[i].tag == "perform":
-            pass
+            # PERFORM PARA1 THROUGH PARA2
+            # Next statement will be first statement of PARA1
+            tokens = statements[i].text.split()
+            para1_name = tokens[1]
+            para2_name = tokens[3]
+
+            # index will be line_number - 1
+            next_statement_index = (paragraphs[para1_name].line_number + 1) - 1 
+            statements[i].next.append(statements[next_statement_index])
+            
+            # last stat in PERFORM - THRU
+            # statement before para-2 must point to i+1
+            para2_index = paragraphs[para2_name].line_number - 1
+            # setting next of statement just before para2 
+            statements[para2_index - 1].next.append(statements[i+1])
+            
         elif statements[i].tag == "if":
             pass
         elif statements[i].tag == "else":
             pass
         elif statements[i].tag == "go":
-            pass
+            # GO TO PARA
+            # Next statement will be first statement of PARA
+            tokens = statements[i].text.split()
+            para_name = tokens[2]
+       
+
+            # index will be line_number - 1
+            next_statement_index = (paragraphs[para_name].line_number + 1) - 1 
+            statements[i].next.append(statements[next_statement_index])
+            
         elif statements[i].tag == "exit":
             pass
         elif statements[i].tag == "stop":
             pass
         elif statements[i].tag == "paragraph_name":
-            pass
+            statements[i].next.append(statements[i+1])            
         elif statements[i].tag == "end-if":
-            pass
+            statements[i].next.append(statements[i+1])            
         else:
-            pass
-        pass
-    pass
+            statements[i].next.append(statements[i+1])            
+            
+        
+    
 
 if __name__ == '__main__':
     str = "IF NEED = (QT-A + QT-B) AND QT-MEAT > 0"

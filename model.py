@@ -1,3 +1,5 @@
+
+
 class Variable:
     def __init__(self, name):
         self.name = name
@@ -32,15 +34,15 @@ class Model:
 
     def process_data_statement(self, words):
         if 'SECTION.' in words:
-            self.prog['DATA']['work_store'] = {'group': [], 'elementary': []}
+            self.prog['DATA']['work_store'] = {'group': [], 'elementary': {}}
         else:
             if words[1] == '01':
                 pass
             elif words[1] == '77':
-                self.prog['DATA']['work_store']['elementary'].append(Variable(words[3]))
+                self.prog['DATA']['work_store']['elementary'][words[3]]=(Variable(words[3]))
             else:
                 words = ' '.join(words[1:]).strip().split(' ')
-                self.prog['DATA']['work_store']['elementary'].append(Variable(words[1]))
+                self.prog['DATA']['work_store']['elementary'][words[1]]= (Variable(words[1]))
             
 
     def process_proc_statement(self, line):

@@ -230,6 +230,9 @@ def procedure_division(code, variables):
         "conditional":[]
     }
     paragraphs = {}
+
+    temp_stack = [] # to keep track of if statements
+
     for line in code:
         line = line.replace('.','')
         line = line.replace('\t','')
@@ -252,21 +255,33 @@ def procedure_division(code, variables):
             statement = if_statement(tokens,line_number,variables, variable_classification)
             statements.append(statement)
             line_number = line_number + 1
+            temp_stack.append(statement)
         elif first_token == "else":
             # else
+            if_stmt = temp_stack[len(temp_stack)-1]
+            
             statement = Statement()
             statement.line_number = line_number
             statement.tag = "else"
             statement.text = " ".join(tokens[1:])
             statements.append(statement)
             line_number = line_number + 1
+
+            if_stmt.alt = line_number-1
+            if_stmt.last = line_number-2
         elif first_token == "end-if":
+            if_stmt = temp_stack.pop()
+
             statement = Statement()
             statement.line_number = line_number
             statement.tag = "else"
             statement.text = " ".join(tokens[1:])
             statements.append(statement)
             line_number = line_number + 1
+
+            if_stmt.alt_last = line_number-2
+            if_stmt.next_line = line_number
+
         elif first_token == "display":
             # display statement
             statement = display_statement(tokens,line_number,variables, variable_classification)
@@ -359,14 +374,23 @@ def procedure_division(code, variables):
 
     return business_variables, statements, paragraphs
 
+def display(statement):
+    print(statement.tag, statement.text)
+    statements = statement.next
+    for statement in statements:
+        print(statement.tag, statement.text)
+
 def build_cfg(statements, paragraphs):
     for i in range(len(statements)):
         if statements[i].tag == "perform":
             pass
         elif statements[i].tag == "if":
-            pass
-        elif statements[i].tag == "else":
-            pass
+            statements[i].next = [statements[statements[i].line_number], statements[statements[i].alt]]
+            statements[statements[i].last].next.append(statements[i].next_line)
+            statements[statements[i].alt_last].next.append(statements[i].next_line)
+
+            display(statements[i])
+
         elif statements[i].tag == "go":
             pass
         elif statements[i].tag == "exit":

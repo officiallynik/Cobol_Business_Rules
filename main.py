@@ -1,5 +1,5 @@
 from model import Model
-from procedure import procedure_division
+from procedure import build_cfg, procedure_division
 
 with open('input/shop.cbl') as f:
     code = f.read()
@@ -7,4 +7,5 @@ with open('input/shop.cbl') as f:
     cbl_model.build_model(code)
     variables = cbl_model.prog['DATA']['work_store']['elementary']
     code=cbl_model.prog['PROCEDURE']
-    business_variabes, statements, paragraph = procedure_division(code,variables)
+    business_variabes, statements, paragraphs = procedure_division(code,variables)
+    build_cfg(statements, paragraphs)

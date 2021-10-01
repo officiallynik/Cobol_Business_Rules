@@ -269,7 +269,13 @@ def procedure_division(code, variables):
             statement.text = " ".join(tokens[1:])
             statements.append(statement)
             line_number = line_number + 1
-            
+        elif first_token == "end-if":
+            statement = Statement()
+            statement.line_number = line_number
+            statement.tag = "else"
+            statement.text = " ".join(tokens[1:])
+            statements.append(statement)
+            line_number = line_number + 1
         elif first_token == "display":
             # display statement
             statement = display_statement(tokens,line_number,variables, variable_classification)

@@ -7,4 +7,4 @@ with open('input/shop.cbl') as f:
     cbl_model.build_model(code)
     variables = cbl_model.prog['DATA']['work_store']['elementary']
     code=cbl_model.prog['PROCEDURE']
-    procedure_division(code,variables)
+    business_variabes, statements, paragraph = procedure_division(code,variables)

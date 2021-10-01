@@ -357,9 +357,29 @@ def procedure_division(code, variables):
     for var in variable_classification["conditional"]:   
         business_variables.add(var.name)
 
-    return business_variables, statements
+    return business_variables, statements, paragraphs
 
-def build_cfg():
+def build_cfg(statements, paragraphs):
+    for i in range(len(statements)):
+        if statements[i].tag == "perform":
+            pass
+        elif statements[i].tag == "if":
+            pass
+        elif statements[i].tag == "else":
+            pass
+        elif statements[i].tag == "go":
+            pass
+        elif statements[i].tag == "exit":
+            pass
+        elif statements[i].tag == "stop":
+            pass
+        elif statements[i].tag == "paragraph_name":
+            pass
+        elif statements[i].tag == "end-if":
+            pass
+        else:
+            pass
+        pass
     pass
 
 if __name__ == '__main__':

@@ -91,7 +91,6 @@ def add_statement(tokens, line_number, variables, variable_classification):
     variable_classification["target"].append(variables[target])
     return statement
     
-
 def subtract_statement(tokens, line_number, variables, variable_classification):
     # SUBTRACT FROM statement
     # Syntax: 005102 SUBTRACT A B C D FROM E
@@ -135,9 +134,6 @@ def remove_operators(tokens):
     #print(clean_st)
     return clean_st.split()
     
-
-        
-
 def compute_statement(tokens, line_number, variables, variable_classification):
     # COMPUTE statement
     # Syntax: 005102 COMPUTE WS-NUMC= (WS-NUM1 * WS-NUM2) - (WS-NUMA / WS-NUMB) + WS-NUM3.
@@ -167,8 +163,6 @@ def compute_statement(tokens, line_number, variables, variable_classification):
     
 def if_statement(tokens, line_number, variables, variable_classification):
     # IF statement
-    
-
     statement =  Statement()
     statement.tag = "if"
     statement.line_number = line_number
@@ -197,9 +191,6 @@ def remove_string_literal(tokens):
     edited_st = re.sub(r'".+?"'," ",str) # remove everything between double quotes
     edited_st = re.sub(r'".+?"'," ",edited_st) # remove everything between single quotes
     return edited_st.split()
-
-
-
 
 def display_statement(tokens, line_number, variables, variable_classification):
     # DISPLAY statement 
@@ -281,7 +272,6 @@ def procedure_division(code, variables):
             statement = display_statement(tokens,line_number,variables, variable_classification)
             statements.append(statement)
             line_number = line_number + 1
-            pass
         elif first_token == "perform":
             # PERFORM THROUGH statement
             statement = Statement()
@@ -290,7 +280,6 @@ def procedure_division(code, variables):
             statement.text = " ".join(tokens[1:])
             statements.append(statement)
             line_number = line_number + 1
-            pass
         elif first_token == "go":
             # GO TO statement
             statement = Statement()
@@ -299,7 +288,6 @@ def procedure_division(code, variables):
             statement.text = " ".join(tokens[1:])
             statements.append(statement)
             line_number = line_number + 1
-            pass
         elif first_token == "move":
             # MOVE TO statement
             statement = move_statement(tokens,line_number,variables, variable_classification)
@@ -359,145 +347,21 @@ def procedure_division(code, variables):
             paragraphs[tokens[1]] = statement
             line_number = line_number + 1
     
-    for st in statements:
-        print(st.text)
-        print("Condition Variables")
-        for key in (st.conditionVariable):
-            print(key)
-        print("Index Variables")
-        for key in (st.indexVariable):
-            print(key)
-        print("Source Variables")
-        for key in (st.sourceVariable):
-            print(key)
-        print("Target Variables")
-        for key in (st.targetVariable):
-            print(key)
-        print("Tag: ",st.tag)
-
-    # variable_classification={
-    #     "target":[],
-    #     "in-out":[],
-    #     "conditional":[]
-    # }
-    print("TARGET VARIABLES:")
+    business_variables = set()
     for var in variable_classification["target"]:   
-        print(var.name)
-    print("IN-OUT VARIABLES:")
+        business_variables.add(var.name)
+
     for var in variable_classification["in-out"]:   
-        print(var.name)
-    print("CONDITIONAL VARIABLES:")
+        business_variables.add(var.name)
+    
     for var in variable_classification["conditional"]:   
-        print(var.name)
-    #paragraphs = {}
-    print("PARAGRAPH NAMES")
-    for key in (paragraphs):
-        print(key)
-        
+        business_variables.add(var.name)
 
-            
+    return business_variables, statements
 
+def build_cfg():
+    pass
 
 if __name__ == '__main__':
     str = "IF NEED = (QT-A + QT-B) AND QT-MEAT > 0"
     print(remove_operators(str.split()))
-
-# '''
-# 02900 PROCEDURE DIVISION.
-# 003000 INIT.
-# 003200    IF OP = 1
-# 003201      DISPLAY "SHOP IS OPEN"
-# 003202      PERFORM INIT-PRD THROUGH INIT-PRD-FN
-# 003203      GO TO INIT-FN
-# 004300    ELSE
-# 004301      DISPLAY "SHOP IS CLOSED"
-# 004400    	GO TO INIT.
-# 004402 INIT-FN. EXIT.
-# 004500 BUY-VEG.
-# 004501 PERFORM ISNEEDED THROUGH ISNEEDED-FN.
-# 004700 IF NEED = 1 AND QT-VEG > 0
-# 004800    IF MONEY > PR-VEG AND BAG < MAX-CAP
-# 004900 	ADD 1 TO BAG
-# 005000 	COMPUTE MONEY = MONEY - PR-VEG
-# 005100 	SUBTRACT 1 FROM QT-VEG
-# 005101    ELSE
-# 005102       GO TO PRINT
-# 005103 ELSE
-# 005104     GO TO BUY-MEAT.
-# 005105 BUY-VEG-FN. EXIT.
-# 005200 BUY-MEAT.
-# 005201 PERFORM ISNEEDED THROUGH ISNEEDED-FN.    		
-# 005400 IF NEED = 1 AND QT-MEAT > 0
-# 005500    IF MONEY > PR-MEAT AND BAG < MAX-CAP
-# 005600 	ADD 1 TO BAG
-# 005700 	COMPUTE MONEY = MONEY - PR-MEAT
-# 005800 	SUBTRACT 1 FROM QT-MEAT
-# 005801    ELSE
-# 005802      GO TO PRINT
-# 005803 ELSE
-# 005804     GO TO BUY-BREAD.
-# 005805 BUY-MEAT-FN. EXIT.
-# 005900 BUY-BREAD.
-# 005901 PERFORM ISNEEDED THROUGH ISNEEDED-FN.    		
-# 006100 IF NEED = 1 AND QT-BREAD > 0
-# 006200    IF MONEY > PR-BREAD AND BAG < MAX-CAP
-# 006300 	ADD 1 TO BAG
-# 006400 	COMPUTE MONEY = MONEY - PR-BREAD
-# 006500 	SUBTRACT 1 FROM QT-BREAD
-# 006501    ELSE
-# 006502      GO TO PRINT
-# 006503 ELSE
-# 006504     GO TO BUY-MILK.
-# 006505 BUY-BREAD-FN. EXIT.    		
-# 006600 BUY-MILK.
-# 006601 PERFORM ISNEEDED THRU ISNEEDED-FN.    		
-# 006800 IF NEED = 1 AND QT-MILK > 0
-# 006900    IF MONEY > PR-MILK AND BAG < MAX-CAP
-# 007000 	ADD 1 TO BAG
-# 007100 	COMPUTE MONEY = MONEY - PR-MILK
-# 007200 	SUBTRACT 1 FROM QT-MILK
-# 007201     ELSE
-# 007202      GO TO PRINT
-# 007203 ELSE
-# 007204     GO TO BUY-FRUIT.
-# 007205 BUY-MILK-FN. EXIT.
-# 007300 BUY-FRUIT.
-# 007301 PERFORM ISNEEDED THRU ISNEEDED-FN.    		
-# 007500 IF NEED = 1 AND QT-FRUIT > 0
-# 007600    IF MONEY > PR-FRUIT AND BAG < MAX-CAP
-# 007700 	ADD 1 TO BAG
-# 007800 	COMPUTE MONEY = MONEY - PR-FRUIT
-# 007900 	SUBTRACT 1 FROM QT-FRUIT
-# 007901     ELSE
-# 007902      GO TO PRINT
-# 007903 ELSE
-# 007904     GO TO CHECK.
-# 007905 BUY-FRUIT-FN. EXIT.
-# 008000 CHECK.
-# 008100 IF MONEY <= 0 OR BAG >= MAX-CAP
-# 008200 	GO TO PRINT
-# 008201 ELSE
-# 008202     GO TO BUY-VEG.
-# 008203 CHECK-FN. EXIT.
-# 008300 PRINT.
-# 008400 MOVE MONEY TO REST.
-# 008401 DISPLAY "REST:" MONEY.
-# 008402 DISPLAY "NB OF PRODUCTS:" BAG.			
-# 008500 FIN.
-# 008600    STOP RUN.
-# 008601 ISNEEDED.
-# 008602   COMPUTE NEED = FUNCTION RANDOM (1) * 2.
-# 008603 ISNEEDED-FN. EXIT.
-# 008604 INIT-PRD.
-# 008605    COMPUTE QT-VEG = FUNCTION RANDOM (1) * 10
-# 008606    COMPUTE QT-MEAT = FUNCTION RANDOM (1) * 10
-# 008607    COMPUTE QT-BREAD = FUNCTION RANDOM (1) * 10
-# 008608    COMPUTE QT-MILK = FUNCTION RANDOM (1) * 10
-# 008609    COMPUTE QT-FRUIT = FUNCTION RANDOM (1) * 10
-# 008610    COMPUTE PR-VEG = FUNCTION RANDOM (1) * 10 + 3
-# 008611    COMPUTE PR-MEAT = FUNCTION RANDOM (1) * 10 + 5
-# 008612    COMPUTE PR-BREAD = FUNCTION RANDOM (1) * 10 + 1
-# 008613    COMPUTE PR-MILK = FUNCTION RANDOM (1) * 10 + 2
-# 008614    COMPUTE PR-FRUIT = FUNCTION RANDOM (1) * 10 + 1.
-# 008615 INIT-PRD-FN. EXIT.
-# '''

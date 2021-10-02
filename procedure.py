@@ -6,6 +6,7 @@ class Statement:
         self.indexVariable = {}
         self.sourceVariable = {}
         self.targetVariable = {}
+        self.conditionStatements = []
         self.tag = None
         self.line_number = None 
         self.next = []
@@ -360,6 +361,8 @@ def procedure_division(code, variables):
     return business_variables, statements, paragraphs
 
 def build_cfg(statements, paragraphs):
+    stop_found = False
+
     for i in range(len(statements)):
         if statements[i].tag == "perform":
             # PERFORM PARA1 THROUGH PARA2
@@ -394,17 +397,30 @@ def build_cfg(statements, paragraphs):
             statements[i].next.append(statements[next_statement_index])
             
         elif statements[i].tag == "exit":
-            pass
+            if not stop_found:
+                statements[i].next.append(statements[i+1])  
         elif statements[i].tag == "stop":
-            pass
+            stop_found = True            
         elif statements[i].tag == "paragraph_name":
             statements[i].next.append(statements[i+1])            
         elif statements[i].tag == "end-if":
             statements[i].next.append(statements[i+1])            
         else:
-            statements[i].next.append(statements[i+1])            
+            statements[i].next.append(statements[i+1])
+
+# def dfs(statement,vis):            
             
-        
+def extract_execution_path(variable, statements):
+    rules = {}
+    rule_fragments = variable.statements
+    vis = set()
+
+    for fragment in rule_fragments:
+        if fragment.line_number in vis:
+            continue
+        vis.add(fragment.line_number)
+
+    
     
 
 if __name__ == '__main__':

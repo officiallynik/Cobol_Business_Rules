@@ -270,14 +270,14 @@ def procedure_division(code, variables):
             statements.append(statement)
             line_number = line_number + 1
 
-            if_stmt.alt = line_number-1
-            if_stmt.last = line_number-2
+            if_stmt.alt = line_number # alternate: first line of else
+            if_stmt.last = line_number-2 # last: last line before else
         elif first_token == "end-if":
             if_stmt = temp_stack.pop()
 
             statement = Statement()
             statement.line_number = line_number
-            statement.tag = "else"
+            statement.tag = "end-if"
             statement.text = " ".join(tokens[1:])
             statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
@@ -416,13 +416,13 @@ def build_cfg(statements, paragraphs):
             statements[para2_index - 1].next.append(statements[i+1])
             # display(statements[para2_index - 1])
         elif statements[i].tag == "if":
-            statements[i].next = [statements[statements[i].line_number], statements[statements[i].alt]]
-            statements[statements[i].last].next.append(statements[statements[i].next_line])
-            statements[statements[i].alt_last].next.append(statements[statements[i].next_line])
+            statements[i].next = [statements[statements[i].line_number], statements[statements[i].alt - 1]]
+            statements[statements[i].last - 1].next.append(statements[statements[i].next_line - 1])
+            statements[statements[i].alt_last - 1].next.append(statements[statements[i].next_line - 1])
 
-            # display(statements[i])
-        elif statements[i].tag == "else":
-            pass
+            display(statements[i])
+            display(statements[statements[i].last - 1])
+            display(statements[statements[i].alt_last - 1])        
         elif statements[i].tag == "go":
             # GO TO PARA
             # Next statement will be first statement of PARA

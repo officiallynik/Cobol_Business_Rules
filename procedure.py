@@ -9,7 +9,7 @@ class Statement:
         self.conditionStatements = []
         self.tag = None
         self.line_number = None 
-        self.next = []
+        self.next = {}
 
 class Variable:
     def __init__(self):
@@ -233,6 +233,7 @@ def procedure_division(code, variables):
     paragraphs = {}
 
     temp_stack = [] # to keep track of if statements
+    else_stack = [] # to keep track of else statements
 
     for line in code:
         line = line.replace('.','')
@@ -271,7 +272,7 @@ def procedure_division(code, variables):
             line_number = line_number + 1
 
             if_stmt.alt = line_number # alternate: first line of else
-            if_stmt.last = line_number-2 # last: last line before else
+            if_stmt.else_line = line_number-1 # last: else
         elif first_token == "end-if":
             if_stmt = temp_stack.pop()
 
@@ -283,8 +284,9 @@ def procedure_division(code, variables):
             statements.append(statement)
             line_number = line_number + 1
 
-            if_stmt.alt_last = line_number-2
-            if_stmt.next_line = line_number
+            #if_stmt.alt_last = line_number-2
+            # if_stmt.next_line = line_number
+            if_stmt.endif = line_number - 1
 
         elif first_token == "display":
             # display statement
@@ -407,22 +409,24 @@ def build_cfg(statements, paragraphs):
 
             # index will be line_number - 1
             next_statement_index = (paragraphs[para1_name].line_number + 1) - 1 
-            statements[i].next.append(statements[next_statement_index])
+            statements[i].next[statements[i].line_number]=[statements[next_statement_index]]
             
             # last stat in PERFORM - THRU
             # statement before para-2 must point to i+1
             para2_index = paragraphs[para2_name].line_number - 1
             # setting next of statement just before para2 
-            statements[para2_index - 1].next.append(statements[i+1])
+            statements[para2_index - 1].next[statements[i].line_number]=[statements[i+1]]
             # display(statements[para2_index - 1])
         elif statements[i].tag == "if":
-            statements[i].next = [statements[statements[i].line_number], statements[statements[i].alt - 1]]
-            statements[statements[i].last - 1].next.append(statements[statements[i].next_line - 1])
-            statements[statements[i].alt_last - 1].next.append(statements[statements[i].next_line - 1])
+            statements[i].next[statements[i].line_number] = [statements[statements[i].line_number], statements[statements[i].alt - 1]]
+            statements[statements[i].else_line - 1].next[statements[i].else_line - 1]=[statements[statements[i].endif - 1]]
+            #statements[statements[i].alt_last - 1].next.append(statements[statements[i].next_line - 1])
 
-            display(statements[i])
-            display(statements[statements[i].last - 1])
-            display(statements[statements[i].alt_last - 1])        
+            # display(statements[i])
+            # display(statements[statements[i].last - 1])
+            # display(statements[statements[i].alt_last - 1])
+        elif statements[i].tag == "else":
+            pass        
         elif statements[i].tag == "go":
             # GO TO PARA
             # Next statement will be first statement of PARA
@@ -432,29 +436,31 @@ def build_cfg(statements, paragraphs):
 
             # index will be line_number - 1
             next_statement_index = (paragraphs[para_name].line_number + 1) - 1 
-            statements[i].next.append(statements[next_statement_index])
+            statements[i].next[statements[i].line_number]=[statements[next_statement_index]]
             # display(statements[i])
         elif statements[i].tag == "exit":
             if not stop_found:
-                statements[i].next.append(statements[i+1])  
+                statements[i].next[statements[i].line_number]=[statements[i+1]]
         elif statements[i].tag == "stop":
             stop_found = True            
         elif statements[i].tag == "paragraph_name":
-            statements[i].next.append(statements[i+1])            
+            statements[i].next[statements[i].line_number]=[statements[i+1]]            
             # display(statements[i])            
         else:
-            statements[i].next.append(statements[i+1])
+            statements[i].next[statements[i].line_number]=[statements[i+1]]
 
 class Rule_fragment:
     def __init__(self, statement):
         self.statement = statement
         self.next = None
 
-def dfs(statement, path, vis, rules, rule_fragments, head, prev):
+def dfs(statement, path, vis, rules, rule_fragments, head, prev, prev_line_number, temp_vis):
     line_number = statement.line_number
-    if line_number in path:
-        return
+    # if line_number in path:
+    #     return
     if line_number in rule_fragments:
+        if line_number in path:
+            return
         if line_number in vis:
             # already visited rule fragment
             if line_number in rules:
@@ -470,14 +476,18 @@ def dfs(statement, path, vis, rules, rule_fragments, head, prev):
         else:
             # if rule fragment is not visited
             vis.add(line_number)
+            temp_vis.append(line_number)
             prev.next = rule_fragments[line_number]
             prev = prev.next
     path.add(line_number)
 
     #print(statement.line_number,statement.tag, statement.text, statement.next)
-    for next in statement.next:
+    for key, value in statement.next.items():
         #print("Next ",next.text)
-        dfs(next, path, vis, rules, rule_fragments, head, prev)
+        if key == prev_line_number or key == line_number:
+            for next in value:            
+                dfs(next, path ,vis, rules, rule_fragments, head, prev, line_number, temp_vis)
+
 
 
 
@@ -492,7 +502,7 @@ def extract_execution_path(variable, statements):
 
     vis = set()
     # vis contain already added rule fragments
-
+    temp_vis = []
     for fragment in variable_statements:
         if fragment.line_number in vis:
             #print("visited")
@@ -500,10 +510,13 @@ def extract_execution_path(variable, statements):
         path = set()
         path.add(fragment.line_number)
         vis.add(fragment.line_number)
+        temp_vis.append(fragment.line_number)
         head = rule_fragments[fragment.line_number]
         rules[fragment.line_number] = head
-        for next in fragment.next:
-            dfs(next,path ,vis, rules, rule_fragments, head, head)
+        prev= head
+        for key,value in fragment.next.items():
+            for next in value:            
+                dfs(next, path ,vis, rules, rule_fragments, head, prev, fragment.line_number, temp_vis)
         
 
     

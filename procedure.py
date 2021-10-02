@@ -231,6 +231,9 @@ def procedure_division(code, variables):
         "conditional":[]
     }
     paragraphs = {}
+
+    temp_stack = [] # to keep track of if statements
+
     for line in code:
         line = line.replace('.','')
         line = line.replace('\t','')
@@ -251,26 +254,42 @@ def procedure_division(code, variables):
         elif first_token == "if":
             # IF statement
             statement = if_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
+            temp_stack.append(statement)
         elif first_token == "else":
             # else
+            if_stmt = temp_stack[len(temp_stack)-1]
+            
             statement = Statement()
             statement.line_number = line_number
             statement.tag = "else"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
+
+            if_stmt.alt = line_number-1
+            if_stmt.last = line_number-2
         elif first_token == "end-if":
+            if_stmt = temp_stack.pop()
+
             statement = Statement()
             statement.line_number = line_number
             statement.tag = "else"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
+
+            if_stmt.alt_last = line_number-2
+            if_stmt.next_line = line_number
+
         elif first_token == "display":
             # display statement
             statement = display_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
         elif first_token == "perform":
@@ -279,6 +298,7 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "perform"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
         elif first_token == "go":
@@ -287,29 +307,34 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "go"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
         elif first_token == "move":
             # MOVE TO statement
             statement = move_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
         elif first_token == "add":
             # ADD TO statement
             # ADD 1 TO BAG
             statement = add_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
             
         elif first_token == "subtract":
             # SUBTRACT FROM statement
             statement = subtract_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
             
         elif first_token == "compute":
             # COMPUTE statement
             statement = compute_statement(tokens,line_number,variables, variable_classification)
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
             
@@ -319,6 +344,7 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "stop"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
             
@@ -336,6 +362,7 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "exit"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             line_number = line_number + 1
         else:
@@ -344,21 +371,28 @@ def procedure_division(code, variables):
             statement.line_number = line_number
             statement.tag = "paragraph_name"
             statement.text = " ".join(tokens[1:])
+            statement.conditionStatements = temp_stack.copy()
             statements.append(statement)
             paragraphs[tokens[1]] = statement
             line_number = line_number + 1
     
     business_variables = set()
     for var in variable_classification["target"]:   
-        business_variables.add(var.name)
+        business_variables.add(var)
 
     for var in variable_classification["in-out"]:   
-        business_variables.add(var.name)
+        business_variables.add(var)
     
     for var in variable_classification["conditional"]:   
-        business_variables.add(var.name)
+        business_variables.add(var)
 
     return business_variables, statements, paragraphs
+
+def display(statement):
+    print(statement.tag, statement.text, statement.line_number)
+    statements = statement.next
+    for statement in statements:
+        print(statement.tag, statement.text, statement.line_number)
 
 def build_cfg(statements, paragraphs):
     stop_found = False
@@ -380,9 +414,13 @@ def build_cfg(statements, paragraphs):
             para2_index = paragraphs[para2_name].line_number - 1
             # setting next of statement just before para2 
             statements[para2_index - 1].next.append(statements[i+1])
-            
+            # display(statements[para2_index - 1])
         elif statements[i].tag == "if":
-            pass
+            statements[i].next = [statements[statements[i].line_number], statements[statements[i].alt]]
+            statements[statements[i].last].next.append(statements[statements[i].next_line])
+            statements[statements[i].alt_last].next.append(statements[statements[i].next_line])
+
+            # display(statements[i])
         elif statements[i].tag == "else":
             pass
         elif statements[i].tag == "go":
@@ -395,7 +433,7 @@ def build_cfg(statements, paragraphs):
             # index will be line_number - 1
             next_statement_index = (paragraphs[para_name].line_number + 1) - 1 
             statements[i].next.append(statements[next_statement_index])
-            
+            # display(statements[i])
         elif statements[i].tag == "exit":
             if not stop_found:
                 statements[i].next.append(statements[i+1])  
@@ -403,24 +441,82 @@ def build_cfg(statements, paragraphs):
             stop_found = True            
         elif statements[i].tag == "paragraph_name":
             statements[i].next.append(statements[i+1])            
-        elif statements[i].tag == "end-if":
-            statements[i].next.append(statements[i+1])            
+            # display(statements[i])            
         else:
             statements[i].next.append(statements[i+1])
 
-# def dfs(statement,vis):            
+class Rule_fragment:
+    def __init__(self, statement):
+        self.statement = statement
+        self.next = None
+
+def dfs(statement, path, vis, rules, rule_fragments, head, prev):
+    line_number = statement.line_number
+    if line_number in path:
+        return
+    if line_number in rule_fragments:
+        if line_number in vis:
+            # already visited rule fragment
+            if line_number in rules:
+                # head of some rule
+                prev.next = rules[line_number]
+
+                # delete from rules
+                del rules[line_number]
+                return
+            else:
+                prev.next = rule_fragments[line_number]
+                return
+        else:
+            # if rule fragment is not visited
+            vis.add(line_number)
+            prev.next = rule_fragments[line_number]
+            prev = prev.next
+    path.add(line_number)
+
+    #print(statement.line_number,statement.tag, statement.text, statement.next)
+    for next in statement.next:
+        #print("Next ",next.text)
+        dfs(next, path, vis, rules, rule_fragments, head, prev)
+
+
+
             
 def extract_execution_path(variable, statements):
     rules = {}
-    rule_fragments = variable.statements
-    vis = set()
+    variable_statements = variable.statements
+    rule_fragments={}
+    for stmt in variable_statements:
+        print(stmt.line_number, stmt.text)
+        rule_fragments[stmt.line_number] = Rule_fragment(stmt)
 
-    for fragment in rule_fragments:
+    vis = set()
+    # vis contain already added rule fragments
+
+    for fragment in variable_statements:
         if fragment.line_number in vis:
+            #print("visited")
             continue
+        path = set()
+        path.add(fragment.line_number)
         vis.add(fragment.line_number)
+        head = rule_fragments[fragment.line_number]
+        rules[fragment.line_number] = head
+        for next in fragment.next:
+            dfs(next,path ,vis, rules, rule_fragments, head, head)
+        
 
     
+            # display(statements[i])            
+    for key in rules:
+        print("RULE")
+        head = rules[key]
+        temp = head
+        while temp!=None:
+            print(temp.statement.text)
+            temp = temp.next            
+    # return statements
+        
     
 
 if __name__ == '__main__':

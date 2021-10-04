@@ -9,4 +9,4 @@ with open('input/shop.cbl') as f:
     code=cbl_model.prog['PROCEDURE']
     business_variabes, statements, paragraphs = procedure_division(code,variables)
     statements = build_cfg(statements, paragraphs)
-    extract_execution_path(variables["BAG"],statements)
+    extract_execution_path(variables["MONEY"],statements)

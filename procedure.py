@@ -534,6 +534,11 @@ def extract_execution_path(variable, statements):
         temp = head
         while temp!=None:
             print(temp.statement.text)
+            # print("Condition Statements:")
+            # for st in temp.statement.conditionStatements:
+            #     print(st.text)
+            # print("*************************")
+
             temp = temp.next            
     # return statements
         

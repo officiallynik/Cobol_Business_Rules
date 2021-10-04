@@ -8,5 +8,7 @@ with open('input/shop.cbl') as f:
     variables = cbl_model.prog['DATA']['work_store']['elementary']
     code=cbl_model.prog['PROCEDURE']
     business_variabes, statements, paragraphs = procedure_division(code,variables)
+    # for var in business_variabes:
+    #     print(var.name)
     statements = build_cfg(statements, paragraphs)
-    extract_execution_path(variables["PR-FRUIT"],statements)
+    extract_execution_path(variables["BAG"],statements)

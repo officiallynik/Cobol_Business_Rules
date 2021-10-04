@@ -9,7 +9,7 @@ class Statement:
         self.conditionStatements = []
         self.tag = None
         self.line_number = None 
-        self.next = {}
+        self.next = []
 
 class Variable:
     def __init__(self):
@@ -409,17 +409,17 @@ def build_cfg(statements, paragraphs):
 
             # index will be line_number - 1
             next_statement_index = (paragraphs[para1_name].line_number + 1) - 1 
-            statements[i].next[statements[i].line_number]=[statements[next_statement_index]]
+            statements[i].next.append(statements[next_statement_index])
             
             # last stat in PERFORM - THRU
             # statement before para-2 must point to i+1
             para2_index = paragraphs[para2_name].line_number - 1
             # setting next of statement just before para2 
-            statements[para2_index - 1].next[statements[i].line_number]=[statements[i+1]]
+            statements[para2_index - 1].next.append(statements[i+1])
             # display(statements[para2_index - 1])
         elif statements[i].tag == "if":
-            statements[i].next[statements[i].line_number] = [statements[statements[i].line_number], statements[statements[i].alt - 1]]
-            statements[statements[i].else_line - 1].next[statements[i].else_line - 1]=[statements[statements[i].endif - 1]]
+            statements[i].next = [statements[statements[i].line_number], statements[statements[i].alt - 1]]
+            statements[statements[i].else_line - 1].next.append(statements[statements[i].endif - 1])
             #statements[statements[i].alt_last - 1].next.append(statements[statements[i].next_line - 1])
 
             # display(statements[i])
@@ -436,31 +436,34 @@ def build_cfg(statements, paragraphs):
 
             # index will be line_number - 1
             next_statement_index = (paragraphs[para_name].line_number + 1) - 1 
-            statements[i].next[statements[i].line_number]=[statements[next_statement_index]]
+            statements[i].next.append(statements[next_statement_index])
             # display(statements[i])
         elif statements[i].tag == "exit":
             if not stop_found:
-                statements[i].next[statements[i].line_number]=[statements[i+1]]
+                statements[i].next.append(statements[i+1])
         elif statements[i].tag == "stop":
             stop_found = True            
         elif statements[i].tag == "paragraph_name":
-            statements[i].next[statements[i].line_number]=[statements[i+1]]            
+            statements[i].next.append(statements[i+1])            
             # display(statements[i])            
         else:
-            statements[i].next[statements[i].line_number]=[statements[i+1]]
+            statements[i].next.append(statements[i+1])
 
 class Rule_fragment:
     def __init__(self, statement):
         self.statement = statement
         self.next = None
 
-def dfs(statement, path, vis, rules, rule_fragments, head, prev, prev_line_number, temp_vis):
+def dfs(statement, path, vis, rules, rule_fragments, head, prev, tag,prev_line_number,temp_vis):
     line_number = statement.line_number
-    # if line_number in path:
-    #     return
+    
+    if line_number in path:
+        return
+    
     if line_number in rule_fragments:
         if line_number in path:
             return
+        path.add(line_number)
         if line_number in vis:
             # already visited rule fragment
             if line_number in rules:
@@ -479,14 +482,19 @@ def dfs(statement, path, vis, rules, rule_fragments, head, prev, prev_line_numbe
             temp_vis.append(line_number)
             prev.next = rule_fragments[line_number]
             prev = prev.next
-    path.add(line_number)
+    
+    # if statement.tag == "paragraph_name":
+    #     path.add(line_number)
 
-    #print(statement.line_number,statement.tag, statement.text, statement.next)
-    for key, value in statement.next.items():
-        #print("Next ",next.text)
-        if key == prev_line_number or key == line_number:
-            for next in value:            
-                dfs(next, path ,vis, rules, rule_fragments, head, prev, line_number, temp_vis)
+    if tag == "perform":
+        # parent statement was perform
+        for next in statement.next:
+            if next.line_number == prev_line_number + 1 or next.line_number == line_number+1:
+                dfs(next, path ,vis, rules, rule_fragments, head, prev, statement.tag,line_number,temp_vis)
+        return
+    path.add(line_number)
+    for next in statement.next:                       
+        dfs(next, path ,vis, rules, rule_fragments, head, prev, statement.tag,line_number, temp_vis)
 
 
 
@@ -497,7 +505,7 @@ def extract_execution_path(variable, statements):
     variable_statements = variable.statements
     rule_fragments={}
     for stmt in variable_statements:
-        print(stmt.line_number, stmt.text)
+        #print(stmt.line_number, stmt.text)
         rule_fragments[stmt.line_number] = Rule_fragment(stmt)
 
     vis = set()
@@ -514,9 +522,8 @@ def extract_execution_path(variable, statements):
         head = rule_fragments[fragment.line_number]
         rules[fragment.line_number] = head
         prev= head
-        for key,value in fragment.next.items():
-            for next in value:            
-                dfs(next, path ,vis, rules, rule_fragments, head, prev, fragment.line_number, temp_vis)
+        for next in fragment.next:        
+            dfs(next, path ,vis, rules, rule_fragments, head, prev, fragment.tag,fragment.line_number, temp_vis)
         
 
     

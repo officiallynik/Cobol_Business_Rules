@@ -497,7 +497,34 @@ def dfs(statement, path, vis, rules, rule_fragments, head, prev, tag,prev_line_n
         dfs(next, path ,vis, rules, rule_fragments, head, prev, statement.tag,line_number, temp_vis)
 
 
+def insert_fragment(node, fragment):
+    temp = node.next
+    node.next = fragment
+    fragment.next = temp
 
+def add_conditional_statements(rule):
+    added_fragments = set()
+    head = rule
+    temp = head
+    prev = None 
+    while temp != None:
+        st = temp.statement
+        added_fragments.add(st.line_number)
+        for conditional in st.conditionStatements:
+            if conditional.line_number not in added_fragments:
+                fragment = Rule_fragment(conditional)
+                if prev == None:
+                    fragment.next = head
+                    head = fragment
+                    prev = head
+                else: 
+                    insert_fragment(prev, fragment)
+                    prev = prev.next
+                added_fragments.add(conditional.line_number)
+        prev = temp
+        temp = temp.next
+    return head
+    
 
             
 def extract_execution_path(variable, statements):
@@ -529,16 +556,16 @@ def extract_execution_path(variable, statements):
     
             # display(statements[i])            
     for key in rules:
+        head = rules[key]
+        head = add_conditional_statements(head)
+        rules[key] = head
+
+
         print("RULE")
         head = rules[key]
         temp = head
         while temp!=None:
-            print(temp.statement.text)
-            # print("Condition Statements:")
-            # for st in temp.statement.conditionStatements:
-            #     print(st.text)
-            # print("*************************")
-
+            print(temp.statement.text)            
             temp = temp.next            
     # return statements
         

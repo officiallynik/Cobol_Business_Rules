@@ -1,6 +1,6 @@
 # COBOL Business Rule Extraction
 
-![Approach diagram](ReadmeTKG_Approach.png)
+![Approach diagram](COBOL.png)
 
 # Steps to use our tool
 To extract business rules present in an input COBOL file, run the main.py file by passing the input file name and output file name as an arguments.

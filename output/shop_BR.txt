@@ -1,0 +1,183 @@
+##################################################
+
+Extracting business rules for BAG ...........
+RULE
+IF NEED = 1 AND QT-VEG > 0
+IF MONEY > PR-VEG AND BAG < MAX-CAP
+ADD 1 TO BAG
+IF NEED = 1 AND QT-MEAT > 0
+IF MONEY > PR-MEAT AND BAG < MAX-CAP
+ADD 1 TO BAG
+IF NEED = 1 AND QT-BREAD > 0
+IF MONEY > PR-BREAD AND BAG < MAX-CAP
+ADD 1 TO BAG
+IF NEED = 1 AND QT-MILK > 0
+IF MONEY > PR-MILK AND BAG < MAX-CAP
+ADD 1 TO BAG
+IF NEED = 1 AND QT-FRUIT > 0
+IF MONEY > PR-FRUIT AND BAG < MAX-CAP
+ADD 1 TO BAG
+IF MONEY <= 0 OR BAG >= MAX-CAP
+DISPLAY "NB OF PRODUCTS:" BAG
+
+##################################################
+
+Extracting business rules for PR-BREAD ...........
+RULE
+COMPUTE PR-BREAD = FUNCTION RANDOM (1) * 10 + 1
+IF NEED = 1 AND QT-BREAD > 0
+IF MONEY > PR-BREAD AND BAG < MAX-CAP
+COMPUTE MONEY = MONEY - PR-BREAD
+
+##################################################
+
+Extracting business rules for MONEY ...........
+RULE
+IF NEED = 1 AND QT-VEG > 0
+IF MONEY > PR-VEG AND BAG < MAX-CAP
+COMPUTE MONEY = MONEY - PR-VEG
+IF NEED = 1 AND QT-MEAT > 0
+IF MONEY > PR-MEAT AND BAG < MAX-CAP
+COMPUTE MONEY = MONEY - PR-MEAT
+IF NEED = 1 AND QT-BREAD > 0
+IF MONEY > PR-BREAD AND BAG < MAX-CAP
+COMPUTE MONEY = MONEY - PR-BREAD
+IF NEED = 1 AND QT-MILK > 0
+IF MONEY > PR-MILK AND BAG < MAX-CAP
+COMPUTE MONEY = MONEY - PR-MILK
+IF NEED = 1 AND QT-FRUIT > 0
+IF MONEY > PR-FRUIT AND BAG < MAX-CAP
+COMPUTE MONEY = MONEY - PR-FRUIT
+IF MONEY <= 0 OR BAG >= MAX-CAP
+MOVE MONEY TO REST
+DISPLAY "REST:" MONEY
+
+##################################################
+
+Extracting business rules for NEED ...........
+RULE
+IF NEED = 1 AND QT-VEG > 0
+COMPUTE NEED = FUNCTION RANDOM (1) * 2
+IF NEED = 1 AND QT-MEAT > 0
+RULE
+IF NEED = 1 AND QT-BREAD > 0
+COMPUTE NEED = FUNCTION RANDOM (1) * 2
+IF NEED = 1 AND QT-MEAT > 0
+RULE
+IF NEED = 1 AND QT-MILK > 0
+COMPUTE NEED = FUNCTION RANDOM (1) * 2
+IF NEED = 1 AND QT-MEAT > 0
+RULE
+IF NEED = 1 AND QT-FRUIT > 0
+COMPUTE NEED = FUNCTION RANDOM (1) * 2
+IF NEED = 1 AND QT-MEAT > 0
+
+##################################################
+
+Extracting business rules for PR-VEG ...........
+RULE
+COMPUTE PR-VEG = FUNCTION RANDOM (1) * 10 + 3
+IF NEED = 1 AND QT-VEG > 0
+IF MONEY > PR-VEG AND BAG < MAX-CAP
+COMPUTE MONEY = MONEY - PR-VEG
+
+##################################################
+
+Extracting business rules for QT-BREAD ...........
+RULE
+COMPUTE QT-BREAD = FUNCTION RANDOM (1) * 10
+IF NEED = 1 AND QT-BREAD > 0
+IF MONEY > PR-BREAD AND BAG < MAX-CAP
+SUBTRACT 1 FROM QT-BREAD
+
+##################################################
+
+Extracting business rules for PR-MEAT ...........
+RULE
+COMPUTE PR-MEAT = FUNCTION RANDOM (1) * 10 + 5
+IF NEED = 1 AND QT-MEAT > 0
+IF MONEY > PR-MEAT AND BAG < MAX-CAP
+COMPUTE MONEY = MONEY - PR-MEAT
+
+##################################################
+
+Extracting business rules for OP ...........
+RULE
+IF OP = 1
+
+##################################################
+
+Extracting business rules for PR-FRUIT ...........
+RULE
+COMPUTE PR-FRUIT = FUNCTION RANDOM (1) * 10 + 1
+IF NEED = 1 AND QT-FRUIT > 0
+IF MONEY > PR-FRUIT AND BAG < MAX-CAP
+COMPUTE MONEY = MONEY - PR-FRUIT
+
+##################################################
+
+Extracting business rules for QT-FRUIT ...........
+RULE
+COMPUTE QT-FRUIT = FUNCTION RANDOM (1) * 10
+IF NEED = 1 AND QT-FRUIT > 0
+IF MONEY > PR-FRUIT AND BAG < MAX-CAP
+SUBTRACT 1 FROM QT-FRUIT
+
+##################################################
+
+Extracting business rules for QT-MEAT ...........
+RULE
+COMPUTE QT-MEAT = FUNCTION RANDOM (1) * 10
+IF NEED = 1 AND QT-MEAT > 0
+IF MONEY > PR-MEAT AND BAG < MAX-CAP
+SUBTRACT 1 FROM QT-MEAT
+
+##################################################
+
+Extracting business rules for QT-VEG ...........
+RULE
+COMPUTE QT-VEG = FUNCTION RANDOM (1) * 10
+IF NEED = 1 AND QT-VEG > 0
+IF MONEY > PR-VEG AND BAG < MAX-CAP
+SUBTRACT 1 FROM QT-VEG
+
+##################################################
+
+Extracting business rules for REST ...........
+RULE
+MOVE MONEY TO REST
+
+##################################################
+
+Extracting business rules for QT-MILK ...........
+RULE
+COMPUTE QT-MILK = FUNCTION RANDOM (1) * 10
+IF NEED = 1 AND QT-MILK > 0
+IF MONEY > PR-MILK AND BAG < MAX-CAP
+SUBTRACT 1 FROM QT-MILK
+
+##################################################
+
+Extracting business rules for PR-MILK ...........
+RULE
+COMPUTE PR-MILK = FUNCTION RANDOM (1) * 10 + 2
+IF NEED = 1 AND QT-MILK > 0
+IF MONEY > PR-MILK AND BAG < MAX-CAP
+COMPUTE MONEY = MONEY - PR-MILK
+
+##################################################
+
+Extracting business rules for MAX-CAP ...........
+RULE
+IF NEED = 1 AND QT-VEG > 0
+IF MONEY > PR-VEG AND BAG < MAX-CAP
+IF NEED = 1 AND QT-MEAT > 0
+IF MONEY > PR-MEAT AND BAG < MAX-CAP
+IF NEED = 1 AND QT-BREAD > 0
+IF MONEY > PR-BREAD AND BAG < MAX-CAP
+IF NEED = 1 AND QT-MILK > 0
+IF MONEY > PR-MILK AND BAG < MAX-CAP
+IF NEED = 1 AND QT-FRUIT > 0
+IF MONEY > PR-FRUIT AND BAG < MAX-CAP
+IF MONEY <= 0 OR BAG >= MAX-CAP
+

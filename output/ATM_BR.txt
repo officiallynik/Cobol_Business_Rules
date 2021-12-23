@@ -1,0 +1,47 @@
+##################################################
+
+Extracting business rules for WITHDRAW-LIMIT ...........
+RULE
+IF WITHDRAW-AMT > 0 AND WITHDRAW-AMT <= WITHDRAW-LIMIT
+DISPLAY "PLEASE WITHDRAW AMOUNT LESS THAN THE LIMIT: " WITHDRAW-LIMIT
+
+##################################################
+
+Extracting business rules for BALANCE ...........
+RULE
+IF BALANCE > 0
+COMPUTE NEW-BALANCE = BALANCE - WITHDRAW-AMT
+IF ALLOW = 1
+IF NEW-BALANCE >= 0
+MOVE NEW-BALANCE TO BALANCE
+DISPLAY "NEW BALANCE:" BALANCE
+
+##################################################
+
+Extracting business rules for WITHDRAW-AMT ...........
+RULE
+IF WITHDRAW-AMT > 0 AND WITHDRAW-AMT <= WITHDRAW-LIMIT
+COMPUTE NEW-BALANCE = BALANCE - WITHDRAW-AMT
+DISPLAY "WITHDRAW AMOUNT:" WITHDRAW-AMT
+
+##################################################
+
+Extracting business rules for NEW-BALANCE ...........
+RULE
+COMPUTE NEW-BALANCE = BALANCE - WITHDRAW-AMT
+IF ALLOW = 1
+IF NEW-BALANCE >= 0
+DISPLAY "YOU DO NOT HAVE ENOUGH BALANCE: " NEW-BALANCE
+
+##################################################
+
+Extracting business rules for ALLOW ...........
+RULE
+IF WITHDRAW-AMT > 0 AND WITHDRAW-AMT <= WITHDRAW-LIMIT
+COMPUTE ALLOW = 1
+IF ALLOW = 1
+RULE
+IF WITHDRAW-AMT > 0 AND WITHDRAW-AMT <= WITHDRAW-LIMIT
+COMPUTE ALLOW = 0
+IF ALLOW = 1
+

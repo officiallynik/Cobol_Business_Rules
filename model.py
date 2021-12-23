@@ -38,7 +38,7 @@ class Model:
         else:
             if words[1] == '01':
                 pass
-            elif words[1] == '77':
+            elif words[1] == '77':                
                 self.prog['DATA']['work_store']['elementary'][words[3]]=(Variable(words[3]))
             else:
                 words = ' '.join(words[1:]).strip().split(' ')
